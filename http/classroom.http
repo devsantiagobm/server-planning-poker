@@ -1,0 +1,12 @@
+POST http://localhost:8080/classroom HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Example"
+}
+
+
+###
+
+GET http://localhost:8080/classroom 
+x-classroom-id: 65b70b876ec1738b7dc0374d
