@@ -1,12 +1,13 @@
 import { Socket, Server as SocketServer } from "socket.io";
 import { Classroom, Player } from "../models/index.js";
-import { CastError, Types } from "mongoose";
+import { Types } from "mongoose";
 
-export function socketsController(socket: Socket, io: SocketServer) {
-
-
-    socket.on("join-classroom", async function (data: JoinMatchata) {
+export function socketsController(socket: Socket, io: SocketServer) {    
+    socket.on("join-classroom", async function (data: { roomID: string, username: string, type: string}) {
         try {
+
+            console.log(data);
+        
             const { roomID } = data
 
             if (!Types.ObjectId.isValid(roomID)) {
@@ -45,6 +46,8 @@ export function socketsController(socket: Socket, io: SocketServer) {
 
 
 
+
+
             io.to(roomID).emit("join-classroom", { classroom, players })
 
         } catch (error) {
@@ -73,6 +76,7 @@ export function socketsController(socket: Socket, io: SocketServer) {
         playersInRoom.forEach(({ vote }) => votedCards[vote] ? votedCards[vote] = votedCards[vote] + 1 : votedCards[vote] = 1)
         const amountOfVotes = Object.entries(votedCards).map(([label, times]) => ({ label, times }));
 
+
         io.to(roomID).emit("reveal-cards", { average, amountOfVotes })
     })
 
@@ -82,8 +86,8 @@ export function socketsController(socket: Socket, io: SocketServer) {
             const player = await Player.findOneAndUpdate({ socketID: socket.id }, { vote: card })
             if (!player) throw new Error("Usuario no encontrado")
             const { roomID } = player
-
             const players = await Player.find({ roomID })
+
 
             io.to(roomID).emit("update-classroom", { players })
         } catch (error) {
@@ -168,9 +172,4 @@ export function socketsController(socket: Socket, io: SocketServer) {
 
 }
 
-interface JoinMatchata {
-    roomID: string
-    username: string
-    type: string
-}
 

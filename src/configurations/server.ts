@@ -3,19 +3,20 @@ import http, { Server as HttpServer } from "node:http"
 import { Server as SocketServer } from "socket.io"
 import { classroomRouter } from "../routes/index.js"
 import { socketsController } from "../controllers/sockets.controller.js"
-import cors from "cors"
+import cors, { CorsOptions } from "cors"
 
 export default class Server {
     app: Application;
     io: SocketServer;
     httpServer: HttpServer;
+    CLIENTS_URL = process.env.CLIENTS_URL?.split(",");
 
     constructor() {
         this.app = express()
         this.httpServer = http.createServer(this.app);
         this.io = new SocketServer(this.httpServer, {
             cors: {
-                origin: process.env.CLIENT_URL
+                origin: this.CLIENTS_URL
             }
         })
 
@@ -28,12 +29,18 @@ export default class Server {
         this.sockets();
         this.routes()
     }
-
     middlewares() {
-        this.app.use(express.json())
         this.app.use(cors({
-            origin: process.env.CLIENT_URL
+            origin:  (origin, callback) => {
+                if (origin && this.CLIENTS_URL && this.CLIENTS_URL.includes(origin)) {
+                    callback(null, true);
+                } else {
+                    callback(new Error('Not allowed by CORS'));
+                }
+            }
         }))
+        this.app.use(express.json())
+
     }
 
     routes() {

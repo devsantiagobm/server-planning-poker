@@ -13,6 +13,7 @@ export function socketsController(socket, io) {
     socket.on("join-classroom", function (data) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                console.log(data);
                 const { roomID } = data;
                 if (!Types.ObjectId.isValid(roomID)) {
                     io.to(socket.id).emit("error", { message: "Ups! Parece que el id no es válido" });
